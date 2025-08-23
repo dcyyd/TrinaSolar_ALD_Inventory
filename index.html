@@ -1,22 +1,43 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head>
+  <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>盘点大师 | 专业盘点工具</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        tailwind.config = {
+      tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        primary: '#0d3b8c',
-                        secondary: '#0c5e9c',
-                        accent: '#1c8cc9',
-                        dark: '#0a1a33',
-                        light: '#f0f7ff',
+                        primary: { 
+                            DEFAULT: '#0d3b8c',
+                            light: '#1e4da8',
+                            dark: '#0a2e6d'
+                        },
+                        secondary: { 
+                            DEFAULT: '#0c5e9c',
+                            light: '#1a7ab8',
+                            dark: '#094a7a'
+                        },
+                        accent: { 
+                            DEFAULT: '#1c8cc9',
+                            light: '#2aa1e6',
+                            dark: '#1570a5'
+                        },
+                        dark: {
+                            DEFAULT: '#0a1a33',
+                            light: '#1a2b4a',
+                            lighter: '#2a3c61'
+                        },
+                        light: {
+                            DEFAULT: '#f0f7ff',
+                            dark: '#e0e7ee'
+                        },
                         success: '#10b981',
                         warning: '#f59e0b',
                         danger: '#ef4444',
@@ -39,7 +60,9 @@
                     boxShadow: {
                         card: '0 4px 12px rgba(0,0,0,0.05)',
                         'card-hover': '0 6px 20px rgba(0,0,0,0.08)',
-                        'input': '0 0 0 3px rgba(13, 59, 140, 0.2)'
+                        'input': '0 0 0 3px rgba(13, 59, 140, 0.2)',
+                        'dark-card': '0 4px 12px rgba(0,0,0,0.2)',
+                        'dark-card-hover': '0 6px 20px rgba(0,0,0,0.25)'
                     },
                     animation: {
                         'fade-in': 'fadeIn 0.3s ease-in',
@@ -52,13 +75,32 @@
         }
     </script>
     <style type="text/tailwindcss">
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
         @layer base {
-            body {
-                @apply bg-gradient-to-br from-gray-50 to-gray-100 font-sans text-gray-800 antialiased;
-                min-height: 100vh;
+            :root {
+                --color-bg-primary: #f8fafc;
+                --color-bg-secondary: #ffffff;
+                --color-text-primary: #1e293b;
+                --color-text-secondary: '#64748b';
+                --color-border: #e2e8f0;
             }
+            
+            .dark {
+                --color-bg-primary: #0f172a;
+                --color-bg-secondary: #1e293b;
+                --color-text-primary: #f1f5f9;
+                --color-text-secondary: #94a3b8;
+                --color-border: #334155;
+            }
+            
+            body {
+                @apply bg-gradient-to-br from-gray-50 to-gray-100 font-sans text-gray-800 antialiased transition-colors duration-300;
+                min-height: 100vh;
+                background-color: var(--color-bg-primary);
+                color: var(--color-text-primary);
+            }
+            
             @keyframes fadeIn {
                 from { opacity: 0; }
                 to { opacity: 1; }
@@ -76,332 +118,733 @@
                 50% { transform: scale(1.05); }
             }
         }
+        
         @layer components {
             .card {
                 @apply bg-white rounded-xl p-6 shadow-card hover:shadow-card-hover transition-all duration-300 border border-gray-100;
+                background-color: var(--color-bg-secondary);
+                border-color: var(--color-border);
             }
+            .dark .card {
+                @apply shadow-dark-card hover:shadow-dark-card-hover;
+            }
+            
             .btn {
                 @apply py-3 px-6 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-2;
             }
             .btn-primary {
-                @apply bg-primary hover:bg-primary/90 text-white shadow-sm hover:shadow-md;
+                @apply bg-primary hover:bg-primary-light text-white shadow-sm hover:shadow-md;
             }
             .btn-secondary {
-                @apply bg-secondary hover:bg-secondary/90 text-white shadow-sm hover:shadow-md;
+                @apply bg-secondary hover:bg-secondary-light text-white shadow-sm hover:shadow-md;
             }
             .btn-outline {
                 @apply border border-primary text-primary hover:bg-primary/5;
             }
+            
             .input-field {
                 @apply w-full px-4 py-3 bg-white border border-gray-200 rounded-lg focus:ring-2 focus:ring-primary/30 focus:border-primary transition text-gray-800 placeholder-gray-400;
+                background-color: var(--color-bg-secondary);
+                border-color: var(--color-border);
+                color: var(--color-text-primary);
             }
+            .input-field:focus {
+                @apply shadow-input;
+            }
+            
             .input-label {
                 @apply block text-sm font-semibold text-gray-700 mb-2;
+                color: var(--color-text-primary);
             }
+            
             .stat-value {
                 @apply text-2xl font-bold tracking-tight;
             }
+            
             .section-title {
                 @apply text-xl font-bold text-gray-800 flex items-center gap-2;
+                color: var(--color-text-primary);
             }
+            
             .badge {
                 @apply text-xs font-medium px-2.5 py-1 rounded-full;
             }
+            
             .tabs {
                 @apply flex border-b border-gray-200;
+                border-color: var(--color-border);
             }
+            
             .tab {
                 @apply px-4 py-2 text-sm font-medium cursor-pointer border-b-2 border-transparent;
+                color: var(--color-text-secondary);
             }
+            
             .tab.active {
                 @apply text-primary border-primary;
             }
+            
             .loader {
                 @apply inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin;
             }
+            
             .countdown-digit {
                 @apply inline-block min-w-[24px] text-center font-mono;
             }
+            
+            .export-table {
+                @apply w-full border-collapse;
+            }
+            
+            .export-table th, .export-table td {
+                @apply border border-gray-300 px-3 py-2 text-sm;
+                border-color: var(--color-border);
+            }
+            
+            .export-table th {
+                @apply bg-gray-100 font-semibold text-center;
+                background-color: var(--color-bg-secondary);
+            }
+            
+            .export-text {
+                @apply font-mono text-sm bg-gray-50 p-4 rounded-lg overflow-auto max-h-96;
+                background-color: var(--color-bg-secondary);
+                color: var(--color-text-primary);
+            }
+            
+            .theme-toggle {
+                @apply w-12 h-6 flex items-center bg-gray-300 rounded-full p-1 cursor-pointer transition-colors duration-300;
+            }
+            
+            .theme-toggle.active {
+                @apply bg-primary;
+            }
+            
+            .theme-toggle-handle {
+                @apply bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300;
+            }
+            
+            .theme-toggle.active .theme-toggle-handle {
+                transform: translateX(24px);
+            }
+            
+            .language-switcher {
+                @apply relative inline-block;
+            }
+            
+            .language-dropdown {
+                @apply absolute right-0 mt-2 w-32 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-50 hidden;
+                background-color: var(--color-bg-secondary);
+            }
+            
+            .language-dropdown.show {
+                @apply block;
+            }
+            
+            .language-option {
+                @apply block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left;
+                color: var(--color-text-primary);
+            }
+            
+            .language-option:hover {
+                background-color: var(--color-border);
+            }
+        }
+
+        /* Markdown 报告样式 */
+        #exportPreview {
+            max-width: 900px;
+            max-height: 300px;
+            margin: 20px auto;
+            padding: 30px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            font-family: 'Segoe UI', system-ui;
+            line-height: 1.6;
+        }
+
+        #exportPreview h1 {
+            font-size: 1.5em;
+            color: #2c3e50;
+            font-weight: bold;
+            border-bottom: 2px solid #ecf0f1;
+            padding-bottom: 0.3em;
+        }
+
+        #exportPreview blockquote {
+            background: #f9f9f9;
+            border-left: 4px solid #3498db;
+            margin: 1.5em 0;
+            padding: 0.5em 1em;
+            color: #555;
+        }
+
+        #exportPreview code {
+            background: #f8f8f8;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: Consolas, Monaco, monospace;
+        }
+
+        #exportPreview hr {
+            border: 0;
+            height: 1px;
+            background: #ecf0f1;
+            margin: 2em 0;
+        }
+
+        #exportPreview strong {
+            color: #e74c3c;
         }
     </style>
-</head>
-<body class="min-h-screen">
-    <div class="container mx-auto px-4 py-8 max-w-5xl">
-        <!-- 头部区域 - 专业现代化风格 -->
-        <header class="mb-10 text-center">
-            <div class="inline-flex items-center justify-center p-4 bg-gradient-to-br from-primary to-secondary rounded-2xl mb-4 shadow-lg">
-                <i class="fa fa-calculator text-white text-3xl"></i>
+  </head>
+  <body class="min-h-screen">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+      <!-- 头部区域 - 专业现代化风格 -->
+      <header class="mb-10 text-center w-full">
+        <div class="flex flex-col items-center gap-4">
+          <!-- 主标题容器 -->
+          <div class="flex flex-col items-center gap-2 w-full">
+            <div class="inline-flex items-center justify-center p-3 bg-gradient-to-br from-primary to-secondary rounded-xl shadow-lg">
+              <i class="fa fa-calculator text-white text-2xl"></i>
             </div>
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">盘点<span class="text-primary">大师</span>Pro</h1>
-            <p class="text-gray-600 max-w-md mx-auto">专业盘点计算工具，精准高效管理您的盘点数据</p>
-            
-            <div class="mt-6 flex flex-wrap justify-center gap-4">
-                <div class="bg-white rounded-lg p-3 shadow-sm inline-flex items-center gap-2">
-                    <i class="fa fa-database text-primary"></i>
-                    <span class="text-sm font-medium">本地存储</span>
+            <h1 class="text-2xl font-bold" data-i18n="app_title">盘点<span class="text-primary">大师</span>Pro</h1>
+          </div>
+          <!-- 控制按钮组 -->
+          <div class="flex flex-col items-center gap-4 w-full">
+            <div class="flex items-center justify-center gap-4 w-full">
+              <!-- 语言切换 -->
+              <div class="language-switcher">
+                <button id="languageToggle" class="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors dark:bg-dark-light">
+                  <i class="fa fa-globe text-primary"></i>
+                  <span id="currentLanguage">中文</span>
+                  <i class="fa fa-caret-down"></i>
+                </button>
+                <div id="languageDropdown" class="language-dropdown">
+                  <button data-lang="zh" class="language-option">中文</button>
+                  <button data-lang="en" class="language-option">English</button>
                 </div>
-                <div class="bg-white rounded-lg p-3 shadow-sm inline-flex items-center gap-2">
-                    <i class="fa fa-clock-o text-primary"></i>
-                    <span class="text-sm font-medium">自动销毁</span>
+              </div>
+              <!-- 主题切换 -->
+              <div class="flex items-center gap-2">
+                <i class="fa fa-sun-o text-gray-500"></i>
+                <div id="themeToggle" class="theme-toggle">
+                  <div class="theme-toggle-handle"></div>
                 </div>
-                <div class="bg-white rounded-lg p-3 shadow-sm inline-flex items-center gap-2">
-                    <i class="fa fa-rocket text-primary"></i>
-                    <span class="text-sm font-medium">实时计算</span>
-                </div>
+                <i class="fa fa-moon-o text-gray-500"></i>
+              </div>
             </div>
-        </header>
-
-        <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- 输入区域 -->
-            <div class="lg:col-span-2 space-y-6">
-                <!-- 舟数量部分 -->
-                <section class="card">
-                    <h2 class="section-title mb-5">
-                        <i class="fa fa-ship text-primary"></i>
-                        舟内硅片数计算
-                    </h2>
-                    
-                    <div class="space-y-4">
-                        <div>
-                            <label class="input-label">选择计算类型</label>
-                            <select id="boatQuantity" class="input-field">
-                                <option value="17472">标准舟内硅片数 - 17,472</option>
-                                <option value="17316">备选舟内硅片数 - 17,316</option>
-                                <option value="17004">备选舟内硅片数 - 17,004</option>
-                                <option value="custom">自定义舟内硅片数</option>
-                            </select>
-                        </div>
-                        
-                        <div id="customBoatContainer" class="hidden space-y-4">
-                            <div>
-                                <label for="missingSlots" class="input-label">缺失槽位数 (0-112)</label>
-                                <input type="number" id="missingSlots" class="input-field" placeholder="请输入缺失的槽位数" min="0" max="112" step="1">
-                            </div>
-                            
-                            <div class="bg-gray-50 p-4 rounded-lg flex items-center justify-between">
-                                <div>
-                                    <div class="text-sm text-gray-600">实际槽位数</div>
-                                    <div id="actualSlots" class="text-lg font-semibold">112</div>
-                                </div>
-                                <div class="text-2xl text-gray-300">×</div>
-                                <div>
-                                    <div class="text-sm text-gray-600">每槽位数</div>
-                                    <div class="text-lg font-semibold">156</div>
-                                </div>
-                                <div class="text-2xl text-gray-300">=</div>
-                                <div>
-                                    <div class="text-sm text-gray-600">实际舟内硅片数</div>
-                                    <div id="calculatedBoatValue" class="text-xl font-bold text-primary">17,472</div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- 花篮与平台部分 -->
-                <section class="card">
-                    <div class="flex items-center justify-between mb-5">
-                        <h2 class="section-title">
-                            <i class="fa fa-cubes text-secondary"></i>
-                            花篮硅片数量计算
-                        </h2>
-                        <span class="badge bg-gray-100 text-gray-600">原始数据精度</span>
-                    </div>
-                    
-                    <div class="grid md:grid-cols-2 gap-4">
-                        <div>
-                            <label for="platform" class="input-label">平台花篮数量</label>
-                            <input type="number" id="platform" class="input-field" placeholder="请输入平台花篮数量" step="any">
-                        </div>
-                        
-                        <div>
-                            <label for="wetBasket" class="input-label">湿花篮数量</label>
-                            <input type="number" id="wetBasket" class="input-field" placeholder="请输入湿花篮数量" step="any">
-                        </div>
-                        
-                        <div>
-                            <label for="dryBasket" class="input-label">干花篮数量</label>
-                            <input type="number" id="dryBasket" class="input-field" placeholder="请输入干花篮数量" step="any">
-                        </div>
-                        
-                        <div class="bg-gray-50 p-4 rounded-lg flex flex-col justify-center">
-                            <label class="input-label">花篮总和</label>
-                            <span id="basketTotal" class="stat-value text-secondary">0</span>
-                        </div>
-                    </div>
-                </section>
-
-                <!-- 计算结果部分 -->
-                <section class="card">
-                    <h2 class="section-title mb-5">
-                        <i class="fa fa-chart-bar text-accent"></i>
-                        计算结果
-                    </h2>
-                    
-                    <div class="space-y-6">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="bg-gradient-to-br from-primary/5 to-primary/10 p-4 rounded-xl border border-primary/20">
-                                <div class="flex justify-between items-center">
-                                    <div>
-                                        <div class="text-sm text-gray-600">花篮内硅片总和</div>
-                                        <span id="basketMultiplied" class="stat-value text-accent">0</span>
-                                    </div>
-                                    <i class="fa fa-times-circle text-2xl text-accent/50"></i>
-                                </div>
-                            </div>
-                            
-                            <div class="bg-gradient-to-br from-secondary/5 to-secondary/10 p-4 rounded-xl border border-secondary/20">
-                                <div class="flex justify-between items-center">
-                                    <div>
-                                        <div class="text-sm text-gray-600">最终硅片总量</div>
-                                        <span id="finalTotal" class="stat-value text-primary">0</span>
-                                    </div>
-                                    <i class="fa fa-calculator text-2xl text-primary/50"></i>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="flex flex-wrap gap-3 pt-2">
-                            <button id="calculateBtn" class="btn btn-primary flex-1 min-w-[150px]">
-                                <i class="fa fa-refresh"></i>数据计算
-                            </button>
-                            <button id="resetBtn" class="btn bg-gray-100 hover:bg-gray-200 text-gray-700 flex-1 min-w-[150px]">
-                                <i class="fa fa-undo"></i>重置数据
-                            </button>
-                            <button id="saveBtn" class="btn btn-secondary flex-1 min-w-[150px]">
-                                <i class="fa fa-save"></i>保存结果
-                            </button>
-                        </div>
-                        
-                        <div id="messageArea" class="text-center text-sm h-6"></div>
-                    </div>
-                </section>
+            <!-- 描述文字 -->
+            <p class="text-gray-600 max-w-md mx-auto dark:text-gray-400" data-i18n="app_description">专业盘点计算工具，精准高效管理您的盘点数据</p>
+          </div>
+          <!-- 特性标签 -->
+          <div class="mt-6 flex flex-wrap justify-center gap-4 w-full max-w-2xl">
+            <div class="bg-white rounded-lg p-3 shadow-sm inline-flex items-center gap-2 dark:bg-dark-light">
+              <i class="fa fa-database text-primary"></i>
+              <span class="text-sm font-medium" data-i18n="feature_local">本地存储</span>
             </div>
-            
-            <!-- 可视化区域 -->
+            <div class="bg-white rounded-lg p-3 shadow-sm inline-flex items-center gap-2 dark:bg-dark-light">
+              <i class="fa fa-clock-o text-primary"></i>
+              <span class="text-sm font-medium" data-i18n="feature_auto">自动销毁</span>
+            </div>
+            <div class="bg-white rounded-lg p-3 shadow-sm inline-flex items-center gap-2 dark:bg-dark-light">
+              <i class="fa fa-rocket text-primary"></i>
+              <span class="text-sm font-medium" data-i18n="feature_realtime">实时计算</span>
+            </div>
+            <div class="bg-white rounded-lg p-3 shadow-sm inline-flex items-center gap-2 dark:bg-dark-light">
+              <i class="fa fa-table text-primary"></i>
+              <span class="text-sm font-medium" data-i18n="feature_export">批量导出</span>
+            </div>
+          </div>
+        </div>
+      </header>
+      <main class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- 输入区域 -->
+        <div class="lg:col-span-2 space-y-6">
+          <!-- 机台选择部分 -->
+          <section class="card">
+            <h2 class="section-title mb-5">
+              <i class="fa fa-cogs text-primary"></i>
+              <span data-i18n="section_machine">机台选择</span>
+            </h2>
+            <div class="space-y-4">
+              <div>
+                <label class="input-label" data-i18n="label_select_machine">选择机台编号</label>
+                <select id="machineSelect" class="input-field">
+                  <option value="1">1#</option>
+                  <option value="2">2#</option>
+                  <option value="3">3#</option>
+                  <option value="4">4#</option>
+                  <option value="5">5#</option>
+                  <option value="6">6#</option>
+                  <option value="7">7#</option>
+                  <option value="8">8#</option>
+                  <option value="9">9#</option>
+                  <option value="10">10#</option>
+                  <option value="11">11#</option>
+                </select>
+              </div>
+            </div>
+          </section>
+          <!-- 舟数量部分 -->
+          <section class="card">
+            <h2 class="section-title mb-5">
+              <i class="fa fa-ship text-primary"></i>
+              <span data-i18n="section_boat">舟内硅片数计算</span>
+            </h2>
+            <div class="space-y-4">
+              <div>
+                <label class="input-label" data-i18n="label_calc_type">选择计算类型</label>
+                <select id="boatQuantity" class="input-field">
+                  <option value="17472" data-i18n="option_standard">标准舟内硅片数 - 17,472</option>
+                  <option value="17316" data-i18n="option_alt1">备选舟内硅片数 - 17,316</option>
+                  <option value="17160" data-i18n="option_alt2">备选舟内硅片数 - 17,160</option>
+                  <option value="17004" data-i18n="option_alt3">备选舟内硅片数 - 17,004</option>
+                  <option value="custom" data-i18n="option_custom">自定义舟内硅片数</option>
+                </select>
+              </div>
+              <div id="customBoatContainer" class="hidden space-y-4">
+                <div>
+                  <label for="missingSlots" class="input-label" data-i18n="label_missing_slots">缺失槽位数 (0-112)</label>
+                  <input type="number" id="missingSlots" class="input-field" placeholder="请输入缺失的槽位数" min="0" max="112" step="1">
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg flex items-center justify-between dark:bg-dark-light">
+                  <div>
+                    <div class="text-sm text-gray-600 dark:text-gray-400" data-i18n="label_actual_slots">实际槽位数</div>
+                    <div id="actualSlots" class="text-lg font-semibold">112</div>
+                  </div>
+                  <div class="text-2xl text-gray-300">×</div>
+                  <div>
+                    <div class="text-sm text-gray-600 dark:text-gray-400" data-i18n="label_per_slot">每槽位数</div>
+                    <div class="text-lg font-semibold">156</div>
+                  </div>
+                  <div class="text-2xl text-gray-300">=</div>
+                  <div>
+                    <div class="text-sm text-gray-600 dark:text-gray-400" data-i18n="label_actual_boat">实际舟内硅片数</div>
+                    <div id="calculatedBoatValue" class="text-xl font-bold text-primary">17,472</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+          <!-- 花篮与平台部分 -->
+          <section class="card">
+            <div class="flex items-center justify-between mb-5">
+              <h2 class="section-title">
+                <i class="fa fa-cubes text-secondary"></i>
+                <span data-i18n="section_basket">花篮硅片数量计算</span>
+              </h2>
+              <span class="badge bg-gray-100 text-gray-600 dark:bg-dark-lighter dark:text-gray-300" data-i18n="badge_precision">原始数据精度</span>
+            </div>
+            <div class="space-y-4">
+              <div>
+                <label class="input-label" data-i18n="label_platform">平台花篮数量</label>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div>
+                    <label for="platformAWet" class="input-label" data-i18n="a_wet">A湿</label>
+                    <input type="number" id="platformAWet" class="input-field" placeholder="0" step="any">
+                  </div>
+                  <div>
+                    <label for="platformADry" class="input-label" data-i18n="a_dry">A干</label>
+                    <input type="number" id="platformADry" class="input-field" placeholder="0" step="any">
+                  </div>
+                  <div>
+                    <label for="platformBWet" class="input-label" data-i18n="b_wet">B湿</label>
+                    <input type="number" id="platformBWet" class="input-field" placeholder="0" step="any">
+                  </div>
+                  <div>
+                    <label for="platformBDry" class="input-label" data-i18n="b_dry">B干</label>
+                    <input type="number" id="platformBDry" class="input-field" placeholder="0" step="any">
+                  </div>
+                </div>
+                <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                  <span data-i18n="label_platform_total">平台总数</span>:
+                  <span id="platformTotal">0</span>
+                </div>
+              </div>
+              <div>
+                <label class="input-label" data-i18n="label_wet_basket">湿花篮数量</label>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label for="wetBasketA" class="input-label" data-i18n="a_wet">A湿</label>
+                    <input type="number" id="wetBasketA" class="input-field" placeholder="0" step="any">
+                  </div>
+                  <div>
+                    <label for="wetBasketB" class="input-label" data-i18n="b_wet">B湿</label>
+                    <input type="number" id="wetBasketB" class="input-field" placeholder="0" step="any">
+                  </div>
+                </div>
+                <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                  <span data-i18n="label_wet_total">湿花篮总数</span>:
+                  <span id="wetBasketTotal">0</span>
+                </div>
+              </div>
+              <div>
+                <label class="input-label" data-i18n="label_dry_basket">干花篮数量</label>
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label for="dryBasketA" class="input-label" data-i18n="a_dry">A干</label>
+                    <input type="number" id="dryBasketA" class="input-field" placeholder="0" step="any">
+                  </div>
+                  <div>
+                    <label for="dryBasketB" class="input-label" data-i18n="b_dry">B干</label>
+                    <input type="number" id="dryBasketB" class="input-field" placeholder="0" step="any">
+                  </div>
+                </div>
+                <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
+                  <span data-i18n="label_dry_total">干花篮总数</span>:
+                  <span id="dryBasketTotal">0</span>
+                </div>
+              </div>
+              <div class="bg-gray-50 p-4 rounded-lg flex flex-col justify-center dark:bg-dark-light">
+                <label class="input-label" data-i18n="label_basket_total">花篮总和</label>
+                <span id="basketTotal" class="stat-value text-secondary">0</span>
+              </div>
+            </div>
+          </section>
+          <!-- 计算结果部分 -->
+          <section class="card">
+            <h2 class="section-title mb-5">
+              <i class="fa fa-chart-bar text-accent"></i>
+              <span data-i18n="section_results">计算结果</span>
+            </h2>
             <div class="space-y-6">
-                <!-- 数据卡片 -->
-                <div class="card">
-                    <h2 class="section-title mb-5">
-                        <i class="fa fa-dashboard text-accent"></i>
-                        盘点数据概览
-                    </h2>
-                    
-                    <div class="space-y-4">
-                        <div class="bg-gray-50 p-4 rounded-lg flex items-center justify-between">
-                            <div>
-                                <div class="text-sm text-gray-600">当前舟内硅片数</div>
-                                <div id="currentBoatValue" class="text-xl font-bold text-primary">17,472</div>
-                            </div>
-                            <i class="fa fa-ship text-2xl text-primary/30"></i>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <div class="text-sm text-gray-600">平台花篮</div>
-                                <div id="platformValue" class="text-lg font-semibold text-gray-800">0</div>
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <div class="text-sm text-gray-600">湿花篮</div>
-                                <div id="wetBasketValue" class="text-lg font-semibold text-gray-800">0</div>
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <div class="text-sm text-gray-600">干花篮</div>
-                                <div id="dryBasketValue" class="text-lg font-semibold text-gray-800">0</div>
-                            </div>
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <div class="text-sm text-gray-600">花篮总和</div>
-                                <div id="basketTotalValue" class="text-lg font-semibold text-secondary">0</div>
-                            </div>
-                        </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-gradient-to-br from-primary/5 to-primary/10 p-4 rounded-xl border border-primary/20 dark:from-primary/10 dark:to-primary/20">
+                  <div class="flex justify-between items-center">
+                    <div>
+                      <div class="text-sm text-gray-600 dark:text-gray-400" data-i18n="label_basket_sum">花篮内硅片总和</div>
+                      <span id="basketMultiplied" class="stat-value text-accent">0</span>
                     </div>
+                    <i class="fa fa-times-circle text-2xl text-accent/50"></i>
+                  </div>
                 </div>
-                
-                <!-- 图表区域 -->
-                <div class="card">
-                    <div class="tabs mb-5">
-                        <div class="tab active" data-tab="pie">数据分布</div>
-                        <div class="tab" data-tab="bar">数据对比</div>
-                        <div class="tab" data-tab="doughnut">环形视图</div>
+                <div class="bg-gradient-to-br from-secondary/5 to-secondary/10 p-4 rounded-xl border border-secondary/20 dark:from-secondary/10 dark:to-secondary/20">
+                  <div class="flex justify-between items-center">
+                    <div>
+                      <div class="text-sm text-gray-600 dark:text-gray-400" data-i18n="label_final_total">最终硅片总量</div>
+                      <span id="finalTotal" class="stat-value text-primary">0</span>
                     </div>
-                    
-                    <div class="h-64 relative">
-                        <canvas id="inventoryChart"></canvas>
-                        <div id="chartLoading" class="absolute inset-0 bg-white/80 flex items-center justify-center hidden">
-                            <div class="loader"></div>
-                            <span class="ml-2 text-sm text-gray-600">更新图表中...</span>
-                        </div>
-                    </div>
-                    <div class="mt-4 text-xs text-gray-500 text-center">
-                        <i class="fa fa-info-circle mr-1"></i>
-                        <span id="chartLegend">平台花篮、湿花篮、干花篮数量已乘以104系数</span>
-                    </div>
+                    <i class="fa fa-calculator text-2xl text-primary/50"></i>
+                  </div>
                 </div>
-                
-                <!-- 历史记录 -->
-                <div class="card">
-                    <div class="flex justify-between items-center mb-5">
-                        <h2 class="section-title">
-                            <i class="fa fa-history text-gray-500"></i>
-                            最近计算
-                        </h2>
-                        <div id="expiryCountdown" class="text-xs px-3 py-1.5 bg-orange-50 text-orange-600 rounded-full flex items-center animate-countdown-pulse">
-                            <i class="fa fa-clock-o mr-1"></i>
-                            <span id="expiryTime">--:--:--</span>
-                        </div>
-                    </div>
-                    
-                    <div id="historyList" class="space-y-3 max-h-60 overflow-y-auto pr-2">
-                        <div class="text-center py-4 text-gray-400">
-                            <i class="fa fa-inbox text-2xl mb-2"></i>
-                            <p>暂无历史记录</p>
-                        </div>
-                    </div>
-                </div>
+              </div>
+              <div class="flex flex-wrap gap-3 pt-2">
+                <button id="calculateBtn" class="btn btn-primary flex-1 min-w-[150px]">
+                  <i class="fa fa-refresh"></i><span data-i18n="btn_calculate">数据计算</span>
+                </button>
+                <button id="resetBtn" class="btn bg-gray-100 hover:bg-gray-200 text-gray-700 flex-1 min-w-[150px] dark:bg-dark-light dark:hover:bg-dark-lighter dark:text-gray-300">
+                  <i class="fa fa-undo"></i><span data-i18n="btn_reset">重置数据</span>
+                </button>
+                <button id="saveBtn" class="btn btn-secondary flex-1 min-w-[150px]">
+                  <i class="fa fa-save"></i><span data-i18n="btn_save">保存结果</span>
+                </button>
+                <button id="exportBtn" class="btn bg-green-500 hover:bg-green-600 text-white flex-1 min-w-[150px]">
+                  <i class="fa fa-download"></i><span data-i18n="btn_export">导出结果</span>
+                </button>
+              </div>
+              <div id="messageArea" class="text-center text-sm h-6"></div>
             </div>
-        </main>
-
-       <footer class="mt-5 text-center text-gray-500 text-sm py-6">
-    <p class="mb-1">&copy; 2025 Dou CY. All rights reserved.</p>
-    <p class="text-xs mt-1">Developer: Dou Changyou</p>
-    
-    <div class="flex justify-center space-x-4 text-gray-400 mt-3">
-        <!-- GitHub链接 -->
-        <a href="https://github.com/dcyyd" target="_blank" rel="noopener noreferrer" 
-           class="hover:text-gray-600 transition-colors" title="GitHub">
+          </section>
+        </div>
+        <!-- 可视化区域 -->
+        <div class="space-y-6">
+          <!-- 数据卡片 -->
+          <div class="card">
+            <h2 class="section-title mb-5">
+              <i class="fa fa-dashboard text-accent"></i>
+              <span data-i18n="section_overview">盘点数据概览</span>
+            </h2>
+            <div class="space-y-4">
+              <div class="bg-gray-50 p-4 rounded-lg flex items-center justify-between dark:bg-dark-light">
+                <div>
+                  <div class="text-sm text-gray-600 dark:text-gray-400" data-i18n="label_current_boat">当前舟内硅片数</div>
+                  <div id="currentBoatValue" class="text-xl font-bold text-primary">17,472</div>
+                </div>
+                <i class="fa fa-ship text-2xl text-primary/30"></i>
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div class="bg-gray-50 p-4 rounded-lg dark:bg-dark-light">
+                  <div class="text-sm text-gray-600 dark:text-gray-400" data-i18n="label_platform">平台花篮</div>
+                  <div id="platformValue" class="text-lg font-semibold text-gray-800 dark:text-gray-200">0</div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg dark:bg-dark-light">
+                  <div class="text-sm text-gray-600 dark:text-gray-400" data-i18n="label_wet_basket">湿花篮</div>
+                  <div id="wetBasketValue" class="text-lg font-semibold text-gray-800 dark:text-gray-200">0</div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg dark:bg-dark-light">
+                  <div class="text-sm text-gray-600 dark:text-gray-400" data-i18n="label_dry_basket">干花篮</div>
+                  <div id="dryBasketValue" class="text-lg font-semibold text-gray-800 dark:text-gray-200">0</div>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg dark:bg-dark-light">
+                  <div class="text-sm text-gray-600 dark:text-gray-400" data-i18n="label_basket_total">花篮总和</div>
+                  <div id="basketTotalValue" class="text-lg font-semibold text-secondary">0</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- 图表区域 -->
+          <div class="card">
+            <div class="tabs mb-5">
+              <div class="tab active" data-tab="pie" data-i18n="tab_distribution">数据分布</div>
+              <div class="tab" data-tab="bar" data-i18n="tab_comparison">数据对比</div>
+              <div class="tab" data-tab="doughnut" data-i18n="tab_donut">环形视图</div>
+            </div>
+            <div class="h-64 relative">
+              <canvas id="inventoryChart"></canvas>
+              <div id="chartLoading" class="absolute inset-0 bg-white/80 flex items-center justify-center hidden dark:bg-dark/80">
+                <div class="loader"></div>
+                <span class="ml-2 text-sm text-gray-600 dark:text-gray-400" data-i18n="label_updating_chart">更新图表中...</span>
+              </div>
+            </div>
+            <div class="mt-4 text-xs text-gray-500 text-center dark:text-gray-400">
+              <i class="fa fa-info-circle mr-1"></i>
+              <span id="chartLegend" data-i18n="chart_legend">平台花篮、湿花篮、干花篮数量已乘以104系数</span>
+            </div>
+          </div>
+          <!-- 历史记录 -->
+          <div class="card">
+            <div class="flex justify-between items-center mb-5">
+              <h2 class="section-title">
+                <i class="fa fa-history text-gray-500"></i>
+                <span data-i18n="section_history">最近计算</span>
+              </h2>
+              <div id="expiryCountdown" class="text-xs px-3 py-1.5 bg-orange-50 text-orange-600 rounded-full flex items-center animate-countdown-pulse dark:bg-orange-900/20 dark:text-orange-400">
+                <i class="fa fa-clock-o mr-1"></i>
+                <span id="expiryTime">--:--:--</span>
+              </div>
+            </div>
+            <div id="historyList" class="space-y-3 max-h-60 overflow-y-auto pr-2">
+              <div class="text-center py-4 text-gray-400 dark:text-gray-500">
+                <i class="fa fa-inbox text-2xl mb-2"></i>
+                <p data-i18n="msg_no_history">暂无历史记录</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
+      <!-- 导出模态框 -->
+      <div id="exportModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl p-6 w-full max-w-4xl mx-4 max-h-[80vh] overflow-y-auto dark:bg-dark">
+          <div class="flex justify-between items-center mb-5">
+            <h3 class="text-xl font-bold text-gray-800 dark:text-gray-200" data-i18n="modal_export_title">导出盘点结果</h3>
+            <button id="closeExportModal" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+              <i class="fa fa-times text-xl"></i>
+            </button>
+          </div>
+          <div class="mb-5">
+            <label class="input-label" data-i18n="label_export_machine">选择要导出的机台</label>
+            <select id="exportMachineSelect" class="input-field" multiple size="6">
+              <!-- 机台选择选项将通过JS动态生成 -->
+            </select>
+            <div class="mt-2 flex gap-2">
+              <button id="selectAllBtn" class="btn btn-outline text-xs py-1" data-i18n="btn_select_all">
+                全选
+              </button>
+              <button id="deselectAllBtn" class="btn bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs py-1 dark:bg-dark-light dark:hover:bg-dark-lighter dark:text-gray-300" data-i18n="btn_deselect_all">
+                取消全选
+              </button>
+            </div>
+          </div>
+          <div class="mb-5">
+            <label class="input-label" data-i18n="label_export_preview">导出格式预览</label>
+            <pre id="exportPreview" class="export-text"><!-- 预览内容将通过JS动态生成 --></pre>
+          </div>
+          <div class="mt-6 flex justify-end gap-3">
+            <button id="copyTextBtn" class="btn btn-outline">
+              <i class="fa fa-clipboard"></i><span data-i18n="btn_copy">复制文本</span>
+            </button>
+            <button id="downloadTextBtn" class="btn btn-primary">
+              <i class="fa fa-download"></i><span data-i18n="btn_download">下载文本</span>
+            </button>
+            <button id="downloadImageBtn" class="btn btn-primary">
+              <i class="fa fa-image"></i><span data-i18n="btn_download_image">下载图片</span>
+            </button>
+          </div>
+        </div>
+      </div>
+      <footer class="mt-5 text-center text-gray-500 text-sm py-6">
+        <p class="mb-1">&copy; 2025 Dou CY. All rights reserved.</p>
+        <p class="text-xs mt-1">Developer: Dou Changyou</p>
+        <div class="flex justify-center space-x-4 text-gray-400 mt-3">
+          <!-- 个人主页 -->
+          <a href="https://peakcloud.ink" target="_blank" rel="noopener noreferrer" class="hover:text-gray-600 transition-colors" title="个人主页">
+            <i class="fa fa-home"></i>
+          </a>
+          <!-- GitHub链接 -->
+          <a href="https://github.com/dcyyd" target="_blank" rel="noopener noreferrer" class="hover:text-gray-600 transition-colors" title="GitHub">
             <i class="fa fa-github"></i>
-        </a>
-        
-        <!-- 邮箱链接 -->
-        <a href="mailto:dcyyd_kcug@yeah.net" class="hover:text-gray-600 transition-colors" title="邮箱">
+          </a>
+          <!-- 邮箱链接 -->
+          <a href="mailto:dcyyd_kcug@yeah.net" class="hover:text-gray-600 transition-colors" title="邮箱">
             <i class="fa fa-envelope"></i>
-        </a>
-        
-        <!-- 电话链接 -->
-        <a href="tel:+8617633963626" class="hover:text-gray-600 transition-colors" title="电话">
+          </a>
+          <!-- 电话链接 -->
+          <a href="tel:+8617633963626" class="hover:text-gray-600 transition-colors" title="电话">
             <i class="fa fa-phone"></i>
-        </a>
+          </a>
+        </div>
+      </footer>
     </div>
-</footer>
-    </div>
-
     <script>
+      // 国际化支持
+        const i18n = {
+            zh: {
+                app_title: "盘点大师Pro",
+                app_description: "专业盘点计算工具，精准高效管理您的盘点数据",
+                feature_local: "本地存储",
+                feature_auto: "自动销毁",
+                feature_realtime: "实时计算",
+                feature_export: "批量导出",
+                section_machine: "机台选择",
+                label_select_machine: "选择机台编号",
+                section_boat: "舟内硅片数计算",
+                label_calc_type: "选择计算类型",
+                option_standard: "标准舟内硅片数 - 17,472",
+                option_alt1: "备选舟内硅片数 - 17,316",
+                option_alt2: "备选舟内硅片数 - 17,160",
+                option_alt3: "备选舟内硅片数 - 17,004",
+                option_custom: "自定义舟内硅片数",
+                label_missing_slots: "缺失槽位数 (0-112)",
+                label_actual_slots: "实际槽位数",
+                label_per_slot: "每槽位数",
+                label_actual_boat: "实际舟内硅片数",
+                section_basket: "花篮硅片数量计算",
+                badge_precision: "原始数据精度",
+                label_platform: "平台花篮数量",
+                a_wet: "A湿",
+                a_dry: "A干",
+                b_wet: "B湿",
+                b_dry: "B干",
+                label_platform_total: "平台总数",
+                label_wet_basket: "湿花篮数量",
+                label_wet_total: "湿花篮总数",
+                label_dry_basket: "干花篮数量",
+                label_dry_total: "干花篮总数",
+                label_basket_total: "花篮总和",
+                section_results: "计算结果",
+                label_basket_sum: "花篮内硅片总和",
+                label_final_total: "最终硅片总量",
+                btn_calculate: "数据计算",
+                btn_reset: "重置数据",
+                btn_save: "保存结果",
+                btn_export: "导出结果",
+                section_overview: "盘点数据概览",
+                label_current_boat: "当前舟内硅片数",
+                tab_distribution: "数据分布",
+                tab_comparison: "数据对比",
+                tab_donut: "环形视图",
+                label_updating_chart: "更新图表中...",
+                chart_legend: "平台花篮、湿花篮、干花篮数量已乘以104系数",
+                section_history: "最近计算",
+                msg_no_history: "暂无历史记录",
+                modal_export_title: "导出盘点结果",
+                label_export_machine: "选择要导出的机台",
+                label_export_preview: "导出格式预览",
+                btn_select_all: "全选",
+                btn_deselect_all: "取消全选",
+                btn_copy: "复制文本",
+                btn_download: "下载文本",
+                btn_download_image: "下载图片",
+                msg_calc_complete: "盘点数据计算完成！",
+                msg_data_reset: "数据已重置",
+                msg_data_saved: "计算结果已保存",
+                msg_data_loaded: "已加载保存的数据",
+                msg_text_copied: "文本已复制到剪贴板",
+                msg_file_downloaded: "文本文件已下载",
+                msg_load_failed: "加载保存数据失败",
+                msg_copy_failed: "复制失败: "
+            },
+            en: {
+                app_title: "Inventory Master Pro",
+                app_description: "Professional inventory calculation tool for precise and efficient data management",
+                feature_local: "Local Storage",
+                feature_auto: "Auto Destruction",
+                feature_realtime: "Real-time Calculation",
+                feature_export: "Batch Export",
+                section_machine: "Machine Selection",
+                label_select_machine: "Select Machine Number",
+                section_boat: "Boat Wafer Count Calculation",
+                label_calc_type: "Select Calculation Type",
+                option_standard: "Standard Boat Wafer Count - 17,472",
+                option_alt1: "Alternative Boat Wafer Count - 17,316",
+                option_alt2: "Alternative Boat Wafer Count - 17,160",
+                option_alt3: "Alternative Boat Wafer Count - 17,004",
+                option_custom: "Custom Boat Wafer Count",
+                label_missing_slots: "Missing Slots (0-112)",
+                label_actual_slots: "Actual Slots",
+                label_per_slot: "Wafers Per Slot",
+                label_actual_boat: "Actual Boat Wafer Count",
+                section_basket: "Basket Wafer Count Calculation",
+                badge_precision: "Raw Data Precision",
+                label_platform: "Platform Baskets",
+                a_wet: "A Wet",
+                a_dry: "A Dry",
+                b_wet: "B Wet",
+                b_dry: "B Dry",
+                label_platform_total: "Platform Total",
+                label_wet_basket: "Wet Baskets",
+                label_wet_total: "Wet Basket Total",
+                label_dry_basket: "Dry Baskets",
+                label_dry_total: "Dry Basket Total",
+                label_basket_total: "Basket Total",
+                section_results: "Calculation Results",
+                label_basket_sum: "Total Wafers in Baskets",
+                label_final_total: "Final Total Wafers",
+                btn_calculate: "Calculate Data",
+                btn_reset: "Reset Data",
+                btn_save: "Save Results",
+                btn_export: "Export Results",
+                section_overview: "Inventory Overview",
+                label_current_boat: "Current Boat Wafer Count",
+                tab_distribution: "Data Distribution",
+                tab_comparison: "Data Comparison",
+                tab_donut: "Donut View",
+                label_updating_chart: "Updating Chart...",
+                chart_legend: "Platform, wet and dry basket counts multiplied by 104",
+                section_history: "Recent Calculations",
+                msg_no_history: "No history available",
+                modal_export_title: "Export Inventory Results",
+                label_export_machine: "Select Machines to Export",
+                label_export_preview: "Export Format Preview",
+                btn_select_all: "Select All",
+                btn_deselect_all: "Deselect All",
+                btn_copy: "Copy Text",
+                btn_download: "Download Text",
+                btn_download_image: "Download Image",
+                msg_calc_complete: "Inventory data calculation completed!",
+                msg_data_reset: "Data has been reset",
+                msg_data_saved: "Calculation results saved",
+                msg_data_loaded: "Saved data loaded",
+                msg_text_copied: "Text copied to clipboard",
+                msg_file_downloaded: "Text file downloaded",
+                msg_load_failed: "Failed to load saved data",
+                msg_copy_failed: "Copy failed: "
+            }
+        };
+
+        // 当前语言设置
+        let currentLanguage = 'zh';
+
+        // 应用主题设置
+        let currentTheme = 'light';
+
         // 获取DOM元素
+        const machineSelect = document.getElementById('machineSelect');
         const boatQuantitySelect = document.getElementById('boatQuantity');
         const customBoatContainer = document.getElementById('customBoatContainer');
         const missingSlotsInput = document.getElementById('missingSlots');
         const actualSlotsDisplay = document.getElementById('actualSlots');
         const calculatedBoatValue = document.getElementById('calculatedBoatValue');
         const currentBoatValue = document.getElementById('currentBoatValue');
-        const platformInput = document.getElementById('platform');
-        const wetBasketInput = document.getElementById('wetBasket');
-        const dryBasketInput = document.getElementById('dryBasket');
         const basketTotal = document.getElementById('basketTotal');
         const basketMultiplied = document.getElementById('basketMultiplied');
         const finalTotal = document.getElementById('finalTotal');
         const calculateBtn = document.getElementById('calculateBtn');
         const resetBtn = document.getElementById('resetBtn');
         const saveBtn = document.getElementById('saveBtn');
+        const exportBtn = document.getElementById('exportBtn');
         const messageArea = document.getElementById('messageArea');
         const historyList = document.getElementById('historyList');
         const tabs = document.querySelectorAll('.tab');
@@ -410,11 +853,43 @@
         const expiryCountdown = document.getElementById('expiryCountdown');
         const expiryTime = document.getElementById('expiryTime');
         
+        // 新增输入框元素
+        const platformAWetInput = document.getElementById('platformAWet');
+        const platformADryInput = document.getElementById('platformADry');
+        const platformBWetInput = document.getElementById('platformBWet');
+        const platformBDryInput = document.getElementById('platformBDry');
+        const wetBasketAInput = document.getElementById('wetBasketA');
+        const wetBasketBInput = document.getElementById('wetBasketB');
+        const dryBasketAInput = document.getElementById('dryBasketA');
+        const dryBasketBInput = document.getElementById('dryBasketB');
+        
+        // 总数显示元素
+        const platformTotalSpan = document.getElementById('platformTotal');
+        const wetBasketTotalSpan = document.getElementById('wetBasketTotal');
+        const dryBasketTotalSpan = document.getElementById('dryBasketTotal');
+        
         // 概览区域元素
         const platformValue = document.getElementById('platformValue');
         const wetBasketValue = document.getElementById('wetBasketValue');
         const dryBasketValue = document.getElementById('dryBasketValue');
         const basketTotalValue = document.getElementById('basketTotalValue');
+        
+        // 导出模态框元素
+        const exportModal = document.getElementById('exportModal');
+        const closeExportModal = document.getElementById('closeExportModal');
+        const exportMachineSelect = document.getElementById('exportMachineSelect');
+        const exportPreview = document.getElementById('exportPreview');
+        const selectAllBtn = document.getElementById('selectAllBtn');
+        const deselectAllBtn = document.getElementById('deselectAllBtn');
+        const copyTextBtn = document.getElementById('copyTextBtn');
+        const downloadTextBtn = document.getElementById('downloadTextBtn');
+        const downloadImageBtn = document.getElementById('downloadImageBtn');
+        
+        // 主题切换元素
+        const themeToggle = document.getElementById('themeToggle');
+        const languageToggle = document.getElementById('languageToggle');
+        const languageDropdown = document.getElementById('languageDropdown');
+        const currentLanguageSpan = document.getElementById('currentLanguage');
         
         // 图表变量
         let inventoryChart;
@@ -423,13 +898,23 @@
 
         // 初始化应用状态
         const appState = {
-            boatType: '17472',
-            missingSlots: '0',
-            platform: '',
-            wetBasket: '',
-            dryBasket: '',
-            history: [],
-            savedAt: null
+            currentMachine: '1',
+            machines: {
+                '1': {
+                    boatType: '17472',
+                    missingSlots: '0',
+                    platformAWet: '',
+                    platformADry: '',
+                    platformBWet: '',
+                    platformBDry: '',
+                    wetBasketA: '',
+                    wetBasketB: '',
+                    dryBasketA: '',
+                    dryBasketB: '',
+                    history: [],
+                    savedAt: null
+                }
+            }
         };
 
         // 格式化数字显示（保持小数部分）
@@ -451,7 +936,8 @@
         }
 
         // 显示消息
-        function showMessage(text, isError = false) {
+        function showMessage(textKey, isError = false) {
+            const text = i18n[currentLanguage][textKey] || textKey;
             messageArea.textContent = text;
             messageArea.className = 'text-center text-sm h-6 animate-fade-in ' + 
                                   (isError ? 'text-red-500' : 'text-green-500');
@@ -462,39 +948,172 @@
             }, 3000);
         }
 
+        // 切换语言
+        function switchLanguage(lang) {
+            currentLanguage = lang;
+            currentLanguageSpan.textContent = lang === 'zh' ? '中文' : 'English';
+            
+            // 更新所有带有data-i18n属性的元素
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                if (i18n[lang][key]) {
+                    element.textContent = i18n[lang][key];
+                }
+            });
+            
+            // 更新占位符文本
+            const placeholderElements = {
+                missingSlots: 'label_missing_slots',
+                // platformAWet: 'A湿',
+                // platformADry: 'A干',
+                // platformBWet: 'B湿',
+                // platformBDry: 'B干',
+                // wetBasketA: 'A湿',
+                // wetBasketB: 'B湿',
+                // dryBasketA: 'A干',
+                // dryBasketB: 'B干'
+            };
+            
+            for (const [id, key] of Object.entries(placeholderElements)) {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.placeholder = i18n[lang][key] || key;
+                }
+            }
+            
+            // 保存语言设置
+            localStorage.setItem('inventoryLanguage', lang);
+            
+            // 更新图表和图例
+            updateChart();
+        }
+
+        // 切换主题
+        function toggleTheme() {
+            if (currentTheme === 'light') {
+                document.documentElement.classList.add('dark');
+                currentTheme = 'dark';
+                themeToggle.classList.add('active');
+            } else {
+                document.documentElement.classList.remove('dark');
+                currentTheme = 'light';
+                themeToggle.classList.remove('active');
+            }
+            
+            // 保存主题设置
+            localStorage.setItem('inventoryTheme', currentTheme);
+            
+            // 更新图表以适配新主题
+            if (inventoryChart) {
+                updateChart();
+            }
+        }
+
         // 更新UI以反映当前状态
         function updateUI() {
+            const machine = appState.machines[appState.currentMachine];
+            if (!machine) return;
+            
+            // 更新机台选择
+            machineSelect.value = appState.currentMachine;
+            
             // 更新舟数量选择
-            boatQuantitySelect.value = appState.boatType;
+            boatQuantitySelect.value = machine.boatType;
             
             // 处理自定义舟数量
-            if (appState.boatType === 'custom') {
+            if (machine.boatType === 'custom') {
                 customBoatContainer.classList.remove('hidden');
-                missingSlotsInput.value = appState.missingSlots;
+                missingSlotsInput.value = machine.missingSlots;
                 updateBoatCalculation();
             } else {
                 customBoatContainer.classList.add('hidden');
-                currentBoatValue.textContent = formatNumber(parseFloat(appState.boatType));
+                currentBoatValue.textContent = formatNumber(parseFloat(machine.boatType));
             }
             
             // 更新其他输入字段
-            platformInput.value = appState.platform;
-            wetBasketInput.value = appState.wetBasket;
-            dryBasketInput.value = appState.dryBasket;
+            platformAWetInput.value = machine.platformAWet;
+            platformADryInput.value = machine.platformADry;
+            platformBWetInput.value = machine.platformBWet;
+            platformBDryInput.value = machine.platformBDry;
+            wetBasketAInput.value = machine.wetBasketA;
+            wetBasketBInput.value = machine.wetBasketB;
+            dryBasketAInput.value = machine.dryBasketA;
+            dryBasketBInput.value = machine.dryBasketB;
+            
+            // 更新总数显示
+            updateTotalsDisplay();
             
             // 更新概览区域
-            platformValue.textContent = appState.platform || '0';
-            wetBasketValue.textContent = appState.wetBasket || '0';
-            dryBasketValue.textContent = appState.dryBasket || '0';
+            updateOverview();
             
             // 计算并显示结果
             calculateTotals();
             updateChart();
         }
 
+        // 更新总数显示
+        function updateTotalsDisplay() {
+            const machine = appState.machines[appState.currentMachine];
+            if (!machine) return;
+            
+            const platformTotal = (
+                (machine.platformAWet ? parseFloat(machine.platformAWet) : 0) +
+                (machine.platformADry ? parseFloat(machine.platformADry) : 0) +
+                (machine.platformBWet ? parseFloat(machine.platformBWet) : 0) +
+                (machine.platformBDry ? parseFloat(machine.platformBDry) : 0)
+            );
+            
+            const wetBasketTotal = (
+                (machine.wetBasketA ? parseFloat(machine.wetBasketA) : 0) +
+                (machine.wetBasketB ? parseFloat(machine.wetBasketB) : 0)
+            );
+            
+            const dryBasketTotal = (
+                (machine.dryBasketA ? parseFloat(machine.dryBasketA) : 0) +
+                (machine.dryBasketB ? parseFloat(machine.dryBasketB) : 0)
+            );
+            
+            platformTotalSpan.textContent = formatNumber(platformTotal);
+            wetBasketTotalSpan.textContent = formatNumber(wetBasketTotal);
+            dryBasketTotalSpan.textContent = formatNumber(dryBasketTotal);
+        }
+
+        // 更新概览区域
+        function updateOverview() {
+            const machine = appState.machines[appState.currentMachine];
+            if (!machine) return;
+            
+            const platformTotal = (
+                (machine.platformAWet ? parseFloat(machine.platformAWet) : 0) +
+                (machine.platformADry ? parseFloat(machine.platformADry) : 0) +
+                (machine.platformBWet ? parseFloat(machine.platformBWet) : 0) +
+                (machine.platformBDry ? parseFloat(machine.platformBDry) : 0)
+            );
+            
+            const wetBasketTotal = (
+                (machine.wetBasketA ? parseFloat(machine.wetBasketA) : 0) +
+                (machine.wetBasketB ? parseFloat(machine.wetBasketB) : 0)
+            );
+            
+            const dryBasketTotal = (
+                (machine.dryBasketA ? parseFloat(machine.dryBasketA) : 0) +
+                (machine.dryBasketB ? parseFloat(machine.dryBasketB) : 0)
+            );
+            
+            const basketSum = platformTotal + wetBasketTotal + dryBasketTotal;
+            
+            platformValue.textContent = formatNumber(platformTotal);
+            wetBasketValue.textContent = formatNumber(wetBasketTotal);
+            dryBasketValue.textContent = formatNumber(dryBasketTotal);
+            basketTotalValue.textContent = formatNumber(basketSum);
+        }
+
         // 更新舟计算
         function updateBoatCalculation() {
-            const missingSlots = appState.missingSlots ? parseInt(appState.missingSlots) : 0;
+            const machine = appState.machines[appState.currentMachine];
+            if (!machine) return;
+            
+            const missingSlots = machine.missingSlots ? parseInt(machine.missingSlots) : 0;
             const actualSlots = 112 - missingSlots;
             const boatValue = actualSlots * 156;
             
@@ -503,107 +1122,186 @@
             currentBoatValue.textContent = formatNumber(boatValue);
         }
 
+        // 机台选择逻辑
+        machineSelect.addEventListener('change', function() {
+            appState.currentMachine = this.value;
+            
+            // 如果选择的机台不存在，则初始化
+            if (!appState.machines[appState.currentMachine]) {
+                appState.machines[appState.currentMachine] = {
+                    boatType: '17472',
+                    missingSlots: '0',
+                    platformAWet: '',
+                    platformADry: '',
+                    platformBWet: '',
+                    platformBDry: '',
+                    wetBasketA: '',
+                    wetBasketB: '',
+                    dryBasketA: '',
+                    dryBasketB: '',
+                    history: [],
+                    savedAt: null
+                };
+            }
+            
+            updateUI();
+        });
+
         // 舟数量选择逻辑
         boatQuantitySelect.addEventListener('change', function() {
-            appState.boatType = this.value;
+            const machine = appState.machines[appState.currentMachine];
+            if (!machine) return;
+            
+            machine.boatType = this.value;
             if (this.value === 'custom') {
                 customBoatContainer.classList.remove('hidden');
                 missingSlotsInput.focus();
+                updateBoatCalculation();
             } else {
                 customBoatContainer.classList.add('hidden');
+                currentBoatValue.textContent = formatNumber(parseFloat(this.value));
             }
-            updateUI();
+            calculateTotals();
+            updateChart();
         });
 
         // 缺失槽位输入
         missingSlotsInput.addEventListener('input', function() {
+            const machine = appState.machines[appState.currentMachine];
+            if (!machine) return;
+            
             // 限制在0-112之间
             let value = this.value;
             if (value === '') {
-                appState.missingSlots = '';
+                machine.missingSlots = '';
             } else {
                 let num = parseInt(value);
                 if (isNaN(num)) num = 0;
                 if (num < 0) num = 0;
                 if (num > 112) num = 112;
-                appState.missingSlots = num.toString();
+                machine.missingSlots = num.toString();
                 this.value = num.toString();
             }
             updateBoatCalculation();
             calculateTotals();
+            updateChart();
         });
 
-        // 其他输入框变化时更新状态
-        platformInput.addEventListener('input', function() {
-            appState.platform = this.value;
-            platformValue.textContent = this.value || '0';
-            calculateTotals();
-        });
-
-        wetBasketInput.addEventListener('input', function() {
-            appState.wetBasket = this.value;
-            wetBasketValue.textContent = this.value || '0';
-            calculateTotals();
-        });
-
-        dryBasketInput.addEventListener('input', function() {
-            appState.dryBasket = this.value;
-            dryBasketValue.textContent = this.value || '0';
-            calculateTotals();
-        });
+        // 输入框变化时更新状态
+        function setupInputListeners() {
+            // 平台输入框
+            [platformAWetInput, platformADryInput, platformBWetInput, platformBDryInput].forEach(input => {
+                input.addEventListener('input', function() {
+                    const machine = appState.machines[appState.currentMachine];
+                    if (!machine) return;
+                    
+                    machine[this.id] = this.value;
+                    updateTotalsDisplay();
+                    updateOverview();
+                    calculateTotals();
+                    updateChart();
+                });
+            });
+            
+            // 湿花篮输入框
+            [wetBasketAInput, wetBasketBInput].forEach(input => {
+                input.addEventListener('input', function() {
+                    const machine = appState.machines[appState.currentMachine];
+                    if (!machine) return;
+                    
+                    machine[this.id] = this.value;
+                    updateTotalsDisplay();
+                    updateOverview();
+                    calculateTotals();
+                    updateChart();
+                });
+            });
+            
+            // 干花篮输入框
+            [dryBasketAInput, dryBasketBInput].forEach(input => {
+                input.addEventListener('input', function() {
+                    const machine = appState.machines[appState.currentMachine];
+                    if (!machine) return;
+                    
+                    machine[this.id] = this.value;
+                    updateTotalsDisplay();
+                    updateOverview();
+                    calculateTotals();
+                    updateChart();
+                });
+            });
+        }
 
         // 计算按钮点击事件
         calculateBtn.addEventListener('click', function() {
             calculateTotals();
-            showMessage('盘点数据计算完成！');
+            updateChart();
+            showMessage('msg_calc_complete');
         });
 
         // 重置按钮
         resetBtn.addEventListener('click', function() {
+            const machine = appState.machines[appState.currentMachine];
+            if (!machine) return;
+            
             // 重置状态
-            appState.boatType = '17472';
-            appState.missingSlots = '0';
-            appState.platform = '';
-            appState.wetBasket = '';
-            appState.dryBasket = '';
+            machine.boatType = '17472';
+            machine.missingSlots = '0';
+            machine.platformAWet = '';
+            machine.platformADry = '';
+            machine.platformBWet = '';
+            machine.platformBDry = '';
+            machine.wetBasketA = '';
+            machine.wetBasketB = '';
+            machine.dryBasketA = '';
+            machine.dryBasketB = '';
             
             // 更新UI
             updateUI();
-            showMessage('数据已重置');
+            showMessage('msg_data_reset');
         });
 
         // 保存按钮
         saveBtn.addEventListener('click', function() {
+            const machine = appState.machines[appState.currentMachine];
+            if (!machine) return;
+            
             const result = {
                 date: new Date().toLocaleString(),
                 boat: currentBoatValue.textContent,
-                platform: platformValue.textContent,
-                wetBasket: wetBasketValue.textContent,
-                dryBasket: dryBasketValue.textContent,
+                platformAWet: platformAWetInput.value,
+                platformADry: platformADryInput.value,
+                platformBWet: platformBWetInput.value,
+                platformBDry: platformBDryInput.value,
+                wetBasketA: wetBasketAInput.value,
+                wetBasketB: wetBasketBInput.value,
+                dryBasketA: dryBasketAInput.value,
+                dryBasketB: dryBasketBInput.value,
                 total: finalTotal.textContent
             };
             
-            appState.history.unshift(result);
-            if (appState.history.length > 5) {
-                appState.history.pop();
+            machine.history.unshift(result);
+            if (machine.history.length > 5) {
+                machine.history.pop();
             }
             
             // 添加保存时间戳
-            appState.savedAt = new Date().getTime();
+            machine.savedAt = new Date().getTime();
             
             localStorage.setItem('inventoryData', JSON.stringify(appState));
             updateHistory();
             updateExpiryCountdown();
-            showMessage('计算结果已保存');
+            showMessage('msg_data_saved');
         });
 
         // 更新历史记录
         function updateHistory() {
-            if (appState.history.length === 0) {
+            const machine = appState.machines[appState.currentMachine];
+            if (!machine || !machine.history || machine.history.length === 0) {
                 historyList.innerHTML = `
-                    <div class="text-center py-4 text-gray-400">
+                    <div class="text-center py-4 text-gray-400 dark:text-gray-500">
                         <i class="fa fa-inbox text-2xl mb-2"></i>
-                        <p>暂无历史记录</p>
+                        <p data-i18n="msg_no_history">暂无历史记录</p>
                     </div>
                 `;
                 expiryCountdown.classList.add('hidden');
@@ -611,10 +1309,10 @@
             }
             
             let html = '';
-            appState.history.forEach(item => {
+            machine.history.forEach(item => {
                 html += `
-                    <div class="bg-gray-50 p-3 rounded-lg animate-slide-up">
-                        <div class="flex justify-between text-xs text-gray-500 mb-1">
+                    <div class="bg-gray-50 p-3 rounded-lg animate-slide-up dark:bg-dark-light">
+                        <div class="flex justify-between text-xs text-gray-500 mb-1 dark:text-gray-400">
                             <span>${item.date}</span>
                             <span class="font-medium">${item.total}</span>
                         </div>
@@ -624,9 +1322,9 @@
                                 <span>${item.boat}</span>
                             </div>
                             <div class="flex gap-2">
-                                <span class="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs">平台:${item.platform}</span>
-                                <span class="px-2 py-0.5 bg-green-50 text-green-700 rounded text-xs">湿:${item.wetBasket}</span>
-                                <span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-xs">干:${item.dryBasket}</span>
+                                <span class="px-2 py-0.5 bg-blue-50 text-blue-700 rounded text-xs dark:bg-blue-900/20 dark:text-blue-400">平台:${item.platformAWet}/${item.platformADry}/${item.platformBWet}/${item.platformBDry}</span>
+                                <span class="px-2 py-0.5 bg-green-50 text-green-700 rounded text-xs dark:bg-green-900/20 dark:text-green-400">湿:${item.wetBasketA}/${item.wetBasketB}</span>
+                                <span class="px-2 py-0.5 bg-amber-50 text-amber-700 rounded text-xs dark:bg-amber-900/20 dark:text-amber-400">干:${item.dryBasketA}/${item.dryBasketB}</span>
                             </div>
                         </div>
                     </div>
@@ -636,29 +1334,43 @@
             historyList.innerHTML = html;
             
             // 显示过期倒计时
-            if (appState.savedAt) {
+            if (machine.savedAt) {
                 expiryCountdown.classList.remove('hidden');
             }
         }
 
         // 计算总和的函数（保持原始数据精度）
         function calculateTotals() {
+            const machine = appState.machines[appState.currentMachine];
+            if (!machine) return;
+            
             // 获取舟的数量（保持原始值）
             let boatValue = 0;
-            if (appState.boatType === 'custom') {
-                const missingSlots = appState.missingSlots ? parseInt(appState.missingSlots) : 0;
+            if (machine.boatType === 'custom') {
+                const missingSlots = machine.missingSlots ? parseInt(machine.missingSlots) : 0;
                 boatValue = (112 - missingSlots) * 156;
             } else {
-                boatValue = parseFloat(appState.boatType);
+                boatValue = parseFloat(machine.boatType);
             }
             
             // 获取花篮和平台数量（保持原始值）
-            const platform = appState.platform ? parseFloat(appState.platform) : 0;
-            const wetBasket = appState.wetBasket ? parseFloat(appState.wetBasket) : 0;
-            const dryBasket = appState.dryBasket ? parseFloat(appState.dryBasket) : 0;
+            const platformAWet = machine.platformAWet ? parseFloat(machine.platformAWet) : 0;
+            const platformADry = machine.platformADry ? parseFloat(machine.platformADry) : 0;
+            const platformBWet = machine.platformBWet ? parseFloat(machine.platformBWet) : 0;
+            const platformBDry = machine.platformBDry ? parseFloat(machine.platformBDry) : 0;
+            
+            const wetBasketA = machine.wetBasketA ? parseFloat(machine.wetBasketA) : 0;
+            const wetBasketB = machine.wetBasketB ? parseFloat(machine.wetBasketB) : 0;
+            
+            const dryBasketA = machine.dryBasketA ? parseFloat(machine.dryBasketA) : 0;
+            const dryBasketB = machine.dryBasketB ? parseFloat(machine.dryBasketB) : 0;
             
             // 计算花篮及平台总和（保持原始值）
-            const basketSum = platform + wetBasket + dryBasket;
+            const platformSum = platformAWet + platformADry + platformBWet + platformBDry;
+            const wetBasketSum = wetBasketA + wetBasketB;
+            const dryBasketSum = dryBasketA + dryBasketB;
+            const basketSum = platformSum + wetBasketSum + dryBasketSum;
+            
             basketTotal.textContent = formatNumber(basketSum);
             basketTotalValue.textContent = formatNumber(basketSum);
             
@@ -674,10 +1386,21 @@
         // 初始化图表
         function initChart() {
             const ctx = document.getElementById('inventoryChart').getContext('2d');
+            
+            // 根据主题设置图表颜色
+            const isDark = currentTheme === 'dark';
+            const textColor = isDark ? '#f1f5f9' : '#1e293b';
+            const gridColor = isDark ? '#334155' : '#e2e8f0';
+            
             inventoryChart = new Chart(ctx, {
                 type: chartType,
                 data: {
-                    labels: ['舟内硅片数', '平台硅片数', '湿花篮硅片数', '干花篮硅片数'],
+                    labels: [
+                        i18n[currentLanguage].label_current_boat,
+                        i18n[currentLanguage].label_platform,
+                        i18n[currentLanguage].label_wet_basket,
+                        i18n[currentLanguage].label_dry_basket
+                    ],
                     datasets: [{
                         data: [17472, 0, 0, 0],
                         backgroundColor: [
@@ -709,7 +1432,8 @@
                                 padding: 20,
                                 font: {
                                     size: 11
-                                }
+                                },
+                                color: textColor
                             }
                         },
                         tooltip: {
@@ -717,9 +1441,31 @@
                                 label: function(context) {
                                     return `${context.label}: ${formatNumber(context.raw)}`;
                                 }
+                            },
+                            bodyColor: textColor,
+                            titleColor: textColor,
+                            backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                            borderColor: isDark ? '#334155' : '#e2e8f0'
+                        }
+                    },
+                    scales: chartType !== 'pie' && chartType !== 'doughnut' ? {
+                        x: {
+                            grid: {
+                                color: gridColor
+                            },
+                            ticks: {
+                                color: textColor
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: gridColor
+                            },
+                            ticks: {
+                                color: textColor
                             }
                         }
-                    }
+                    } : {}
                 }
             });
         }
@@ -732,22 +1478,32 @@
             chartLoading.classList.remove('hidden');
             
             setTimeout(() => {
-                const platform = appState.platform ? parseFloat(appState.platform) : 0;
-                const wetBasket = appState.wetBasket ? parseFloat(appState.wetBasket) : 0;
-                const dryBasket = appState.dryBasket ? parseFloat(appState.dryBasket) : 0;
+                const machine = appState.machines[appState.currentMachine];
+                if (!machine) return;
+                
+                const platformAWet = machine.platformAWet ? parseFloat(machine.platformAWet) : 0;
+                const platformADry = machine.platformADry ? parseFloat(machine.platformADry) : 0;
+                const platformBWet = machine.platformBWet ? parseFloat(machine.platformBWet) : 0;
+                const platformBDry = machine.platformBDry ? parseFloat(machine.platformBDry) : 0;
+                
+                const wetBasketA = machine.wetBasketA ? parseFloat(machine.wetBasketA) : 0;
+                const wetBasketB = machine.wetBasketB ? parseFloat(machine.wetBasketB) : 0;
+                
+                const dryBasketA = machine.dryBasketA ? parseFloat(machine.dryBasketA) : 0;
+                const dryBasketB = machine.dryBasketB ? parseFloat(machine.dryBasketB) : 0;
                 
                 let boatValue = 0;
-                if (appState.boatType === 'custom') {
-                    const missingSlots = appState.missingSlots ? parseInt(appState.missingSlots) : 0;
+                if (machine.boatType === 'custom') {
+                    const missingSlots = machine.missingSlots ? parseInt(machine.missingSlots) : 0;
                     boatValue = (112 - missingSlots) * 156;
                 } else {
-                    boatValue = parseFloat(appState.boatType);
+                    boatValue = parseFloat(machine.boatType);
                 }
                 
                 // 乘以104系数
-                const platformMultiplied = platform * 104;
-                const wetBasketMultiplied = wetBasket * 104;
-                const dryBasketMultiplied = dryBasket * 104;
+                const platformMultiplied = (platformAWet + platformADry + platformBWet + platformBDry) * 104;
+                const wetBasketMultiplied = (wetBasketA + wetBasketB) * 104;
+                const dryBasketMultiplied = (dryBasketA + dryBasketB) * 104;
                 
                 // 更新图表数据
                 inventoryChart.data.datasets[0].data = [
@@ -758,7 +1514,7 @@
                 ];
                 
                 // 更新图例说明
-                chartLegend.textContent = `平台(${platform}×104), 湿花篮(${wetBasket}×104), 干花篮(${dryBasket}×104)`;
+                chartLegend.textContent = i18n[currentLanguage].chart_legend;
                 
                 // 添加动画效果
                 inventoryChart.options.animation = chartAnimation;
@@ -795,21 +1551,22 @@
 
         // 更新过期倒计时（每秒更新）
         function updateExpiryCountdown() {
-            if (!appState.savedAt) {
+            const machine = appState.machines[appState.currentMachine];
+            if (!machine || !machine.savedAt) {
                 expiryCountdown.classList.add('hidden');
                 return;
             }
             
             const now = new Date().getTime();
-            const savedAt = appState.savedAt;
+            const savedAt = machine.savedAt;
             const twentyFourHours = 24 * 60 * 60 * 1000;
             const timeLeft = twentyFourHours - (now - savedAt);
             
             if (timeLeft <= 0) {
                 // 数据过期，清除本地存储
                 localStorage.removeItem('inventoryData');
-                appState.history = [];
-                appState.savedAt = null;
+                machine.history = [];
+                machine.savedAt = null;
                 updateHistory();
                 expiryCountdown.classList.add('hidden');
                 return;
@@ -835,11 +1592,11 @@
             
             // 如果剩余时间小于1小时，改变样式
             if (timeLeft < 3600000) { // 1小时
-                expiryCountdown.classList.remove('bg-orange-50', 'text-orange-600');
-                expiryCountdown.classList.add('bg-red-50', 'text-red-600');
+                expiryCountdown.classList.remove('bg-orange-50', 'text-orange-600', 'dark:bg-orange-900/20', 'dark:text-orange-400');
+                expiryCountdown.classList.add('bg-red-50', 'text-red-600', 'dark:bg-red-900/20', 'dark:text-red-400');
             } else {
-                expiryCountdown.classList.remove('bg-red-50', 'text-red-600');
-                expiryCountdown.classList.add('bg-orange-50', 'text-orange-600');
+                expiryCountdown.classList.remove('bg-red-50', 'text-red-600', 'dark:bg-red-900/20', 'dark:text-red-400');
+                expiryCountdown.classList.add('bg-orange-50', 'text-orange-600', 'dark:bg-orange-900/20', 'dark:text-orange-400');
             }
         }
 
@@ -850,40 +1607,259 @@
                 try {
                     const data = JSON.parse(savedData);
                     const now = new Date().getTime();
-                    const savedAt = data.savedAt || 0;
-                    const twentyFourHours = 24 * 60 * 60 * 1000;
-                    
-                    // 检查是否超过24小时
-                    if (!savedAt || (now - savedAt > twentyFourHours)) {
-                        localStorage.removeItem('inventoryData');
-                        expiryCountdown.classList.add('hidden');
-                        showMessage('保存的数据已超过24小时，已自动清除', true);
-                        return;
-                    }
                     
                     // 更新应用状态
-                    appState.boatType = data.boatType || '17472';
-                    appState.missingSlots = data.missingSlots || '0';
-                    appState.platform = data.platform || '';
-                    appState.wetBasket = data.wetBasket || '';
-                    appState.dryBasket = data.dryBasket || '';
-                    appState.history = data.history || [];
-                    appState.savedAt = data.savedAt || null;
+                    Object.assign(appState, data);
                     
                     // 更新UI
                     updateUI();
                     updateHistory();
                     updateExpiryCountdown();
-                    showMessage('已加载保存的数据');
+                    showMessage('msg_data_loaded');
                 } catch (e) {
                     console.error('加载保存数据失败:', e);
-                    showMessage('加载保存数据失败', true);
+                    showMessage('msg_load_failed', true);
                 }
             }
+            
+            // 加载主题设置
+            const savedTheme = localStorage.getItem('inventoryTheme');
+            if (savedTheme) {
+                currentTheme = savedTheme;
+                if (currentTheme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                    themeToggle.classList.add('active');
+                }
+            }
+            
+            // 加载语言设置
+            const savedLanguage = localStorage.getItem('inventoryLanguage');
+            if (savedLanguage) {
+                switchLanguage(savedLanguage);
+            }
+        }
+
+        // 打开导出模态框
+        function openExportModal() {
+            // 清空之前的选项
+            exportMachineSelect.innerHTML = '';
+            
+            // 添加机台选择选项
+            Object.keys(appState.machines).sort((a, b) => parseInt(a) - parseInt(b)).forEach(machineId => {
+                const option = document.createElement('option');
+                option.value = machineId;
+                option.textContent = `${machineId}#`;
+                option.selected = true;
+                exportMachineSelect.appendChild(option);
+            });
+            
+            // 生成导出预览
+            generateExportPreview();
+            
+            // 显示模态框
+            exportModal.classList.remove('hidden');
+        }
+
+        // 生成导出预览
+    function generateExportPreview() {
+        let exportText = '# Inventory Result Report\n\n';
+        exportText += ` ***Generation Time**: ${new Date().toLocaleString()}*\n`;
+        exportText += ' ***Data Source**: Inventory Master Pro*\n';
+        exportText += ' ***RID**: INV-' + new Date().getTime() + '*\n';
+        
+        exportText += '\n';
+        
+        // 获取选中的机台
+        const selectedMachines = Array.from(exportMachineSelect.selectedOptions).map(option => option.value);
+        
+        selectedMachines.sort((a, b) => parseInt(a) - parseInt(b)).forEach(machineId => {
+            const machine = appState.machines[machineId];
+            if (!machine) return;
+            
+            // 获取舟的数量
+            let boatValue = 0;
+            if (machine.boatType === 'custom') {
+                const missingSlots = machine.missingSlots ? parseInt(machine.missingSlots) : 0;
+                boatValue = (112 - missingSlots) * 156;
+            } else {
+                boatValue = parseFloat(machine.boatType);
+            }
+            
+            // 计算花篮及平台总和
+            const platformAWet = machine.platformAWet ? parseFloat(machine.platformAWet) : 0;
+            const platformADry = machine.platformADry ? parseFloat(machine.platformADry) : 0;
+            const platformBWet = machine.platformBWet ? parseFloat(machine.platformBWet) : 0;
+            const platformBDry = machine.platformBDry ? parseFloat(machine.platformBDry) : 0;
+            
+            const wetBasketA = machine.wetBasketA ? parseFloat(machine.wetBasketA) : 0;
+            const wetBasketB = machine.wetBasketB ? parseFloat(machine.wetBasketB) : 0;
+            
+            const dryBasketA = machine.dryBasketA ? parseFloat(machine.dryBasketA) : 0;
+            const dryBasketB = machine.dryBasketB ? parseFloat(machine.dryBasketB) : 0;
+            
+            const platformSum = platformAWet + platformADry + platformBWet + platformBDry;
+            const wetBasketSum = wetBasketA + wetBasketB;
+            const dryBasketSum = dryBasketA + dryBasketB;
+            const basketSum = platformSum + wetBasketSum + dryBasketSum;
+            
+            // 计算花篮总和 × 104
+            const multiplied = basketSum * 104;
+            
+            // 计算最终总和
+            const finalSum = boatValue + multiplied;
+            
+            // 按照Markdown格式生成文本（不使用表格）
+            exportText += `> ID: ${machineId}#\n`; // 机台编号
+            exportText += `> ·································\n`;
+            exportText += `> 舟：${formatNumber(boatValue)}\n`; // 舟数量
+            exportText += `> 平台：${platformAWet}\t${platformADry}\t${platformBWet}\t${platformBDry} ==> ${formatNumber(platformSum)*104}\n`; // 平台数量
+            exportText += `> 湿篮：${wetBasketA}\t${wetBasketB} ==> ${formatNumber(wetBasketSum)*104}\n`;    // 湿篮数量
+            exportText += `> 干篮：${dryBasketA}\t${dryBasketB} ==> ${formatNumber(dryBasketSum)*104}\n`;// 干篮数量
+            exportText += `> ·································\n`;
+            exportText += `> *总和：${formatNumber(finalSum)}*\n\n`;    // 最终总和
+        });
+        exportText += '*This report is automatically generated by the system, and the data is for reference only.*\n';
+        exportText += '*© 2025 Dou CY. All rights reserved.*';
+
+        exportPreview.innerHTML = marked.parse(exportText);
+    }
+
+        // 复制文本到剪贴板
+        function copyTextToClipboard() {
+            const textToCopy = exportPreview.textContent;
+            
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showMessage('msg_text_copied');
+            }).catch(err => {
+                showMessage('msg_copy_failed' + err, true);
+            });
+        }
+
+        // 下载文本文件
+        function downloadText() {
+            const textContent = exportPreview.textContent;
+            const blob = new Blob([textContent], { type: 'text/markdown;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `Inventory_Report_${new Date().toLocaleDateString().replace(/\//g, '-')}.txt`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            
+            showMessage('msg_file_downloaded');
+        }
+        
+        // 下载图片文件
+        function downloadImage() {
+            const textContent = exportPreview.textContent;
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 先设置字体再测量尺寸
+            ctx.font = '25px Arial';
+            const metrics = ctx.measureText('M');
+            const lineHeight = (metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent) * 1.8;
+            
+            // 设置画布尺寸
+            canvas.width = 500;
+            canvas.height = (lineHeight * textContent.split('\n').length)+10;
+            
+            // 先绘制背景
+            ctx.fillStyle = '#0d3b8c';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 后设置文本样式
+            ctx.fillStyle = 'white';
+            ctx.textBaseline = 'top';
+
+            textContent.split('\n').forEach((line, index) => {
+                ctx.fillText(
+                    line, 
+                    30, // x坐标
+                    30 + (index * lineHeight) // y坐标
+                );
+            });
+
+            canvas.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.download = `Inventory_Report_${new Date().toLocaleDateString().replace(/\//g, '-')}.png`;
+                link.href = url;
+                link.click();
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+
+            showMessage('msg_file_downloaded');
         }
 
         // 初始化应用
         document.addEventListener('DOMContentLoaded', function() {
+            // 设置输入监听器
+            setupInputListeners();
+            
+            // 导出按钮
+            exportBtn.addEventListener('click', openExportModal);
+            
+            // 关闭导出模态框
+            closeExportModal.addEventListener('click', () => {
+                exportModal.classList.add('hidden');
+            });
+            
+            // 全选按钮
+            selectAllBtn.addEventListener('click', () => {
+                Array.from(exportMachineSelect.options).forEach(option => {
+                    option.selected = true;
+                });
+                generateExportPreview();
+            });
+            
+            // 取消全选按钮
+            deselectAllBtn.addEventListener('click', () => {
+                Array.from(exportMachineSelect.options).forEach(option => {
+                    option.selected = false;
+                });
+                generateExportPreview();
+            });
+            
+            // 机台选择变化时更新预览
+            exportMachineSelect.addEventListener('change', generateExportPreview);
+            
+            // 复制文本按钮
+            copyTextBtn.addEventListener('click', copyTextToClipboard);
+            
+            // 下载文本按钮
+            downloadTextBtn.addEventListener('click', downloadText);
+
+            // 下载图片按钮
+            downloadImageBtn.addEventListener('click', downloadImage);
+            
+            // 主题切换
+            themeToggle.addEventListener('click', toggleTheme);
+            
+            // 语言切换
+            languageToggle.addEventListener('click', () => {
+                languageDropdown.classList.toggle('show');
+            });
+            
+            // 语言选项点击
+            document.querySelectorAll('.language-option').forEach(option => {
+                option.addEventListener('click', () => {
+                    const lang = option.getAttribute('data-lang');
+                    switchLanguage(lang);
+                    languageDropdown.classList.remove('show');
+                });
+            });
+            
+            // 点击外部关闭语言下拉菜单
+            document.addEventListener('click', (e) => {
+                if (!languageToggle.contains(e.target) && !languageDropdown.contains(e.target)) {
+                    languageDropdown.classList.remove('show');
+                }
+            });
+            
+            // 初始化图表和数据
             initChart();
             loadSavedData();
             
@@ -895,5 +1871,5 @@
             updateChart();
         });
     </script>
-</body>
+  </body>
 </html>
